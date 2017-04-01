@@ -9,19 +9,12 @@ using namespace std;
 
 int main(int, char**){
 
-    Mat image;    
+    Mat image, image2;    
     image = imread("../imagens/biel.png", CV_LOAD_IMAGE_GRAYSCALE);
+    image2 = image.clone();
 
     if(!image.data)
         cout << "Não foi possível abrir ou encontrar a imagem." << endl;
-    
-    //uint8_t altura = image.size().height;
-    //uint8_t largura = image.size().width;
-        
-    namedWindow("Imagem Original",WINDOW_AUTOSIZE);
-    imshow("Imagem Original", image);
-    //waitKey(0);    
-    
     
     Point p1, p2;
     
@@ -40,16 +33,18 @@ int main(int, char**){
            p1.x > p2.x || p1.y > p2.y);
     
     cout << "Pontos selecionados: "<< "P1("<<p1.x<<", "<<p1.y<<") e P2("<<p2.x<<", "<<p2.y<<")"<< endl;      
-   
-    
+       
     for(int i=p1.x;i<p2.x;i++){
         for(int j=p1.y;j<p2.y;j++){
-            image.at<uchar>(i,j)= 255 - image.at<uchar>(i,j);
+            image2.at<uchar>(i,j)= 255 - image2.at<uchar>(i,j);
         }
     }
     
+    namedWindow("Imagem Original",WINDOW_AUTOSIZE);
+    imshow("Imagem Original", image);
+    
     namedWindow("Imagem Negativo",WINDOW_AUTOSIZE);
-    imshow("Imagem Negativo", image);
+    imshow("Imagem Negativo", image2);
     waitKey(0);
     
     return 0;

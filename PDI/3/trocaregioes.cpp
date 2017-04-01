@@ -21,11 +21,13 @@ int main(int, char **)
 
     aux = image(Rect(0, 0, 128, 128)).clone();  		//Rect(x0, y0, x, y ) x e y é o quanto eu quero pegar
     aux2 = image(Rect(128, 128, 128, 128)).clone();
+    //TROCA DE REGIÕES
     aux.copyTo(image(Rect(128, 128, 128, 128)));
     aux2.copyTo(image(Rect(0, 0, 128, 128)));
-
-    aux = image(Rect(0, 128, 128, 128)).clone();        //Rect(x0, y0, x, y ) x e y é o quanto eu quero pegar        
+    
+    aux = image(Rect(0, 128, 128, 128)).clone();                //Rect(x0, y0, x, y ) x e y é o quanto eu quero pegar        
     aux2 = image(Rect(128, 0, 128, 128)).clone();
+    //TROCA DE REGIÕES
     aux.copyTo(image(Rect(128, 0, 128, 128)));
     aux2.copyTo(image(Rect(0, 128, 128, 128)));
 
@@ -36,8 +38,3 @@ int main(int, char **)
 
     return 0;
 }
-
-
-
-
-//http://pt.stackoverflow.com/questions/17328/edi%C3%A7%C3%A3o-b%C3%A1sica-de-imagens-utilizando-opencv
