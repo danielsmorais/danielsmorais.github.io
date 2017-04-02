@@ -185,10 +185,10 @@ int main(int, char**){
                                 <div clas="code-block">
                                 <h6>Código: <a href="PDI/3/regions.cpp">regions.cpp</a></h6>
                                 <pre><code class="language-c++">
-#include < iostream>
-#include < cv.h>
-#include < highgui.h>
-#include < opencv2/opencv.hpp>
+#include &#60;iostream&#62;
+#include &#60;cv.h&#62;
+#include &#60;highgui.h&#62;
+#include &#60;opencv2/opencv.hpp&#62;
 
 using namespace cv;
 using namespace std;
@@ -267,8 +267,10 @@ int main(int, char **)
                                     <div clas="code-block">
                                     <h6>Código: <a href="PDI/4/contaregiao.cpp">contaregiao.cpp</a></h6>
                                     <pre><code class="language-c++">
-#include < iostream>
-#include < opencv2/opencv.hpp>
+#include &#60;iostream&#62;
+#include &#60;cv.h&#62;
+#include &#60;highgui.h&#62;
+#include &#60;opencv2/opencv.hpp&#62;
 
 using namespace cv;
 using namespace std;
@@ -406,10 +408,10 @@ int main(int argc, char **argv)
                                     <div clas="code-block">
                                     <h6>Código: <a href="PDI/5/equalize.cpp">equalize.cpp</a></h6>
                                     <pre><code class="language-c++">
-#include < iostream>
-#include < cv.h>
-#include < highgui.h>
-#include < opencv2/opencv.hpp>
+#include &#60;iostream&#62;
+#include &#60;cv.h&#62;
+#include &#60;highgui.h&#62;
+#include &#60;opencv2/opencv.hpp&#62;
 #include "opencv2/imgproc/imgproc.hpp"
 
 using namespace cv;
@@ -538,43 +540,398 @@ int main(int argc, char** argv){
                                         </div>                   
                                     </div><!--//section-block--> 
                                     
-                                    <p>Podemos perceber no histograma que que o da figura 7 possui mais picos elevados do que o da Figura 8, isso ocorre devido a equalização.</p>
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
-                                    
+                                    <p>Podemos perceber no histograma que que o da figura 7 possui mais picos elevados do que o da Figura 8, isso ocorre devido a equalização.</p>             
+
                                     
                                     <h3 class="block-title">5.2 - Motion Detection </h3>
                                     <p><i>
                                     Utilizando o programa <a href="PDI/5/histogram.cpp">histogram.cpp</a> como referência, implemente um programa <code>motiondetector.cpp</code>. Este deverá continuamente calcular o histograma da imagem (apenas uma componente de cor é suficiente) e compará-lo com o último histograma calculado. Quando a diferença entre estes ultrapassar um limiar pré-estabelecido, ative um alarme. Utilize uma função de comparação que julgar conveniente.
                                     </i></p>
                                     <p>
-
+                                    O Motion Detection ou detector de movimento, pode ser utilizado para diferentes aplicações, sendo a mais comum em serviços de segurança e monitoramento. Para Detectarmos movimento, foi utilizado o histograma da captura, sendo nescessário apenas de uma componente. Nesse caso, no início da captura foi armazenado um histograma, de forma que nas capturas seguintes elas são comparadas com a primeira captura, que está armazenada durante a execução da aplicação.
                                     </p>
+                                    <p>
+                                    Há um valor que é utilizado como limiar para sabermos se na variação do histograma houve um movimento grande movimento perceptível. A seguir, código desenvolvido.
+                                    </p>
+                                    
+                                    <div clas="code-block">
+                                    <h6>Código: <a href="PDI/5/equalize.cpp">equalize.cpp</a></h6>
+                                    <pre><code class="language-c++">
+#include &#60;iostream&#62;
+#include &#60;cv.h&#62;
+#include &#60;highgui.h&#62;
+#include &#60;opencv2/opencv.hpp&#62;
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv){
+  Mat image;
+  int width, height;
+  VideoCapture cap;  
+  vector< Mat> planes;
+  Mat hg_old, hg_new;  // histograma verde antigo e novo
+  
+  Mat histR, histG, histB;
+  int nbins = 64;
+  float range[] = {0, 256};
+  const float *histrange = { range };
+  bool uniform = true;
+  bool acummulate = false;
+
+  cap.open(0);
+  
+  
+  if(!cap.isOpened()){
+    cout << "cameras indisponiveis";
+    return -1;
+  }
+  
+  width  = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+  height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+  cout << "largura = " << width << endl;
+  cout << "altura  = " << height << endl;
+
+  int histw = nbins, histh = nbins/2;
+  Mat histImgR(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgG(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgB(histh, histw, CV_8UC3, Scalar(0,0,0));
+  
+  
+  //As análises serão feitas utilizando o primeiro histograma, ou seja, da primeira imagem tirada do ambiente. 
+  //Dessa forma, qualquer alteração dentro do limite x informará movimentação.
+  cap >> image;
+  split (image, planes);
+  calcHist(&planes[1], 1, 0, Mat(), hg_old, 1, &nbins, &histrange, uniform, acummulate);
+  
+  double x = 0;
+  
+  while(1){
+    cap >> image;
+    resize(image, image, Size(640,360));
+       
+///////////////////////////////////////////////////////////////////////////////////////////////////    
+    
+    //DETECÇÃO DE MOVIMENTO
+    
+    split (image, planes);  
+
+    calcHist(&planes[1], 1, 0, Mat(), hg_new, 1, &nbins, &histrange, uniform, acummulate);
+    x = compareHist(hg_new, hg_old, CV_COMP_CORREL);
+    
+    cout << "x = "<< x<< endl;
+
+    if(x<-0.25){
+    	putText(image, "ALARME", cvPoint(250, 100), FONT_HERSHEY_COMPLEX_SMALL, 1, Scalar(255, 0, 0), 2);
+    }
+    
+///////////////////////////////////////////////////////////////////////////////////////////////////    
+    
+    calcHist(&planes[0], 1, 0, Mat(), histR, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&planes[1], 1, 0, Mat(), histG, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&planes[2], 1, 0, Mat(), histB, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+
+    normalize(histR, histR, 0, histImgR.rows, NORM_MINMAX, -1, Mat());
+    normalize(histG, histG, 0, histImgG.rows, NORM_MINMAX, -1, Mat());
+    normalize(histB, histB, 0, histImgB.rows, NORM_MINMAX, -1, Mat());
+
+    histImgR.setTo(Scalar(0));
+    histImgG.setTo(Scalar(0));
+    histImgB.setTo(Scalar(0));
+    
+    for(int i=0; i < nbins; i++){
+      line(histImgR,
+           Point(i, histh),
+           Point(i, histh-cvRound(histR.at< float>(i))),
+           Scalar(0, 0, 255), 1, 8, 0);
+      line(histImgG,
+           Point(i, histh),
+           Point(i, histh-cvRound(histG.at< float>(i))),
+           Scalar(0, 255, 0), 1, 8, 0);
+      line(histImgB,
+           Point(i, histh),
+           Point(i, histh-cvRound(histB.at< float>(i))),
+           Scalar(255, 0, 0), 1, 8, 0);
+    }
+    histImgR.copyTo(image(Rect(0, 0       ,nbins, histh)));
+    histImgG.copyTo(image(Rect(0, histh   ,nbins, histh)));
+    histImgB.copyTo(image(Rect(0, 2*histh ,nbins, histh)));
+    imshow("image", image);
+    if(waitKey(30) >= 0) break;
+  }
+  return 0;
+}                 
+ 
+                                    </code></pre>
+                                    </div>
+                                    
+                                    </br>                                    
+                                    <div class="section-block">
+                                        <h6>Gif 1 - Motion Detector</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/5/video.gif" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->                                 
                                 </div>
                                 
+     
+     
+     
+                                 <div id="step4"  class="section-block">
+                                
+                                    <h1 class="block-title">Exercício 6 - Filtragem no domínio espacial I</h1>
+                                    <p><i>                                    
+                                    Utilizando o programa <a href="PDI/6/filtroespacial.cpp">filtroespacial.cpp</a> como referência, implemente um programa laplgauss.cpp. O programa deverá acrescentar mais uma funcionalidade ao exemplo fornecido, permitindo que seja calculado o laplaciano do gaussiano das imagens capturadas. Compare o resultado desse filtro com a simples aplicação do filtro laplaciano.
+                                    </i></p> 
+                                    <p>
+                                    Utilizando o código de referência, obtemos alguns resultados. Aqui temos o código desenvolvido como a adição do filtro "Laplaciano do Gussiano":
+                                    </p>                   
+                                 
+                                    
+                                    <div clas="code-block">
+                                    <h6>Código: <a href="PDI/6/laplgauss.cpp">laplgauss.cpp</a></h6>
+                                    <pre><code class="language-c++">
+#include &#60;iostream&#62;
+#include &#60;opencv2/opencv.hpp&#62;
+
+using namespace cv;
+using namespace std;
+
+void printmask(Mat & m)
+{
+    for (int i = 0; i < m.size().height; i++) {
+        for (int j = 0; j < m.size().width; j++) {
+            cout << m.at < float >(i, j) << ",";
+        }
+        cout << endl;
+    }
+}
+
+void menu()
+{
+    cout << "\npressione a tecla para ativar o filtro: \n"
+            "a - calcular modulo\n"
+            "m - media\n"
+            "g - gauss\n"
+            "v - vertical\n"
+            "h - horizontal\n" 
+            "l - laplaciano\n"
+            "x - laplaciano do gaussiano\n" 
+            "esc - sair\n";
+}
+
+int main(int argvc, char **argv)
+{
+    VideoCapture video;
+    float media[] = { 1, 1, 1,
+                      1, 1, 1,
+                      1, 1, 1
+    };
+    float gauss[] = { 1, 2, 1,
+                      2, 4, 2,
+                      1, 2, 1
+    };
+    float horizontal[] = { -1, 0, 1,
+                           -2, 0, 2,
+                            1, 0, 1
+    };
+    float vertical[] = {   -1, -2, -1,
+                            0,  0,  0,
+                            1,  2,  1
+    };
+    float laplacian[] = { 0, -1,  0,
+                         -1,  4, -1,
+                          0, -1,  0
+    };
+    
+    // Aplicação da máscara "Laplaciano do Gaussiano", comum na literatura
+    float x[]=  {0,  0,  -1,  0,  0,
+                 0, -1,  -2, -1,  0,
+                -1, -2,  16, -2, -1,
+                 0, -1,  -2, -1,  0,
+                 0,  0,  -1,  0,  0
+    };
+
+    Mat cap, frame, frame32f, frameFiltered;
+    Mat mask(3, 3, CV_32F), mask1;
+    Mat result, result1;
+    double width, height, min, max;
+    int absolut;
+    char key;
+
+    video.open(0);
+    if (!video.isOpened())
+        return -1;
+    width = video.get(CV_CAP_PROP_FRAME_WIDTH);
+    height = video.get(CV_CAP_PROP_FRAME_HEIGHT);
+    std::cout << "largura=" << width << "\n";;
+    std::cout << "altura =" << height << "\n";;
+
+    namedWindow("filtroespacial", 1);
+
+    mask = Mat(3, 3, CV_32F, media);
+    scaleAdd(mask, 1 / 9.0, Mat::zeros(3, 3, CV_32F), mask1);
+    swap(mask, mask1);
+    absolut = 1;                // calcs abs of the image
+
+    menu();
+    for (;;) {
+        video >> cap;
+        resize(cap, cap, Size(640,360));
+        cvtColor(cap, frame, CV_BGR2GRAY);
+        flip(frame, frame, 1);
+        imshow("original", frame);
+        frame.convertTo(frame32f, CV_32F);        
+        
+        filter2D(frame32f, frameFiltered, frame32f.depth(), mask, Point(1, 1), 0);         
+        
+        if (absolut) {
+            frameFiltered = abs(frameFiltered);
+        }
+        frameFiltered.convertTo(result, CV_8U);
+        imshow("filtroespacial", result);
+        key = (char) waitKey(10);
+        if (key == 27)
+            break;              // esc pressed!
+        switch (key) {
+        case 'a':
+            menu();
+            absolut = !absolut;
+            break;
+        case 'm':
+            menu();
+            mask = Mat(3, 3, CV_32F, media);
+            scaleAdd(mask, 1 / 9.0, Mat::zeros(3, 3, CV_32F), mask1);
+            mask = mask1;
+            printmask(mask);
+            break;
+        case 'g':
+            menu();
+            mask = Mat(3, 3, CV_32F, gauss);
+            scaleAdd(mask, 1 / 16.0, Mat::zeros(3, 3, CV_32F), mask1);
+            mask = mask1;
+            printmask(mask);
+            break;
+        case 'h':
+            menu();
+            mask = Mat(3, 3, CV_32F, horizontal);
+            printmask(mask);
+            break;
+        case 'v':
+            menu();
+            mask = Mat(3, 3, CV_32F, vertical);
+            printmask(mask);
+            break;
+        case 'l':
+            menu();
+            mask = Mat(3, 3, CV_32F, laplacian);
+            printmask(mask);
+            break;
+            
+        //Implementação do case para o "laplaciano do Gaussiano"
+        case 'x':
+            menu();
+            mask = Mat(5, 5, CV_32F, x);
+            printmask(mask);
+            break;
+        default:
+            break;
+        }
+    }
+    return 0;
+}
+     
+                                    </code></pre>
+                                </div>
+                                
+                                    <div class="section-block">
+                                        <h6>Figura 9 - Captura Original</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/6/original.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->
+                                    
+                                    <div class="section-block">
+                                        <h6>Figura 10 - Captura com filtro Laplaciano</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/6/laplaciano.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->
+                                    
+                                    <div class="section-block">
+                                        <h6>Figura 11 - Captura com filtro Gaussiano</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/6/gaussiano.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->  
+                                    
+                                    <div class="section-block">
+                                        <h6>Figura 12 - Captura com filtro Laplaciano do Gaussiano</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/6/laplgaus.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->                                      
+                                    
+                                    <p>
+                                    Analizando os resultados, podemos verificar que o "Laplaciano do Gaussiano" deixa as bordas ainda mais aparente, em comparação ao filtro Laplaciano, entretanto, percebe-se mais ruidos.
+                                    </p>
+                                    
+                                </div>
+
+                                 <div id="step5"  class="section-block">
+                                
+                                    <h1 class="block-title">Exercício 7 - Filtragem no domínio espacial II</h1>
+                                    <p><i>                                    
+                                    Utilizando o programa <a href="PDI/7/addweighted.cpp">addweighted.cpp</a> como referência, implemente um programa <code>tiltshift.cpp</code>. Três ajustes deverão ser providos na tela da interface:
+
+                                    <ul class="list">
+                                        <li>um ajuste para regular a altura da região central que entrará em foco;</li>
+                                        <li>um ajuste para regular a força de decaimento da região borrada;</li> 
+                                        <li>um ajuste para regular a posição vertical do centro da região que entrará em foco. Finalizado o programa, a imagem produzida deverá ser salva em arquivo.</li>
+                                    </ul> 
+
+                                    </i></p> 
+                                    <p>
+                                    Independente de como o resultado é obtido (seja da maneira tradicional, através do uso de lentes especiais, ou por pós-produção digital), a aparência é a mesma graças ao desfoque local em algumas áreas específicas. O olho estranha esse desfoque, que não é natural para objetos e edifícios tão grandes e o cérebro acaba percebendo aquilo como uma miniatura.
+                                    </p>
+                                    <p>
+                                    Utilizando o código de referência, foi desenvolvido o código para o tiltshift:
+                                    </p>                   
+                                 
+                                    
+                                    <div clas="code-block">
+                                    <h6>Código: <a href="PDI/6/laplgauss.cpp">laplgauss.cpp</a></h6>
+                                    <pre><code class="language-c++">
+                                    
+                                    
+                                    </code></pre>
+                                    </div>
+                                    
+                                    
+                                    <div class="section-block">
+                                        <h6>Figura 13 - Imagem com tiltshift</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/7/tiltshift.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->                                     
+                                    
+                                </div>
+                                    
+                                    
+                                    
      
                             </section><!--//doc-section-->  
                             

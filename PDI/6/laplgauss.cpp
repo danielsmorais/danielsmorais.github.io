@@ -84,6 +84,7 @@ int main(int argvc, char **argv)
     menu();
     for (;;) {
         video >> cap;
+        resize(cap, cap, Size(640,360));
         cvtColor(cap, frame, CV_BGR2GRAY);
         flip(frame, frame, 1);
         imshow("original", frame);

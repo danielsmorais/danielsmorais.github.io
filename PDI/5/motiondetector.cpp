@@ -40,7 +40,8 @@ int main(int argc, char** argv){
   Mat histImgB(histh, histw, CV_8UC3, Scalar(0,0,0));
   
   
-  //As análises serão feitas utilizando o primeiro histograma, ou seja, da primeira imagem tirada do ambiente. Dessa forma, qualquer alteração dentro do limite x informará movimentação.
+  //As análises serão feitas utilizando o primeiro histograma, ou seja, da primeira imagem tirada do ambiente. 
+  //Dessa forma, qualquer alteração dentro do limite x informará movimentação.
   cap >> image;
   split (image, planes);
   calcHist(&planes[1], 1, 0, Mat(), hg_old, 1, &nbins, &histrange, uniform, acummulate);
@@ -62,9 +63,9 @@ int main(int argc, char** argv){
     
     cout << "x = "<< x<<endl;
 
-    if(x<0.8){
+    if(x<-0.25){
     	putText(image, "ALARME", cvPoint(250, 100), FONT_HERSHEY_COMPLEX_SMALL, 1, Scalar(255, 0, 0), 2);
-    }       
+    }
     
 ///////////////////////////////////////////////////////////////////////////////////////////////////    
     
