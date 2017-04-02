@@ -17,7 +17,7 @@ int main(int argc, char **argv)
         cout << "imagem nao carregou corretamente\n";
         return (-1);
     }
-    width = image.size().width; //colunas
+    width = image.size().width;         //colunas
     height = image.size().height;       //linhas
 
     p.x = 0;
@@ -46,9 +46,3 @@ int main(int argc, char **argv)
     waitKey();
     return 0;
 }
-
-
-
-
-//RESPOSTA
-// Como a imagem é composta por pixels de 8 bits, por ser tom de cinza a imagem poderá ter 256 diferentes tons. Retirando a cor de fundo (preta), temos 255 tons de cinza. Logo, se tivermos mais de 255 objetos não será possível rotulá-los na imagem. O interessante seria especificar um tom de cinza diferente de 0 e 255 e rotular todos os objetos. Com isso, não importa a quantidade de objetos.

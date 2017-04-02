@@ -17,12 +17,11 @@ int main(int argc, char **argv)
         cout << "imagem nao carregou corretamente\n";
         return (-1);
     }
-    width = image.size().width; //colunas
+    width = image.size().width;         //colunas
     height = image.size().height;       //linhas
 
     p.x = 0;
     p.y = 0;
-
     
     // Elimina os objetos que tocam as laterais da imagem, rotulando-os com a cor de fundo;
     for (int k = 0; k < height; k++) {
@@ -50,9 +49,12 @@ int main(int argc, char **argv)
     }    
     
     // Contagem de objetos com buracos
-    //Uma forma de contar o número de buracos é através de rótulos, ou seja, como os buracos possuem o mesmo tom de cinza do fundo, podemos alterar a cor de fundo e buscar os objetos, que terão seu tom de cinza igual ao do fundo. Depois podemos bunscar na imagem o número de regiões de tom de cinza 0, que equivale ao buraco.
+    //Uma forma de contar o número de buracos é através de rótulos, ou seja, como os buracos 
+    //possuem o mesmo tom de cinza do fundo, podemos alterar a cor de fundo e buscar os objetos, 
+    //que terão seu tom de cinza igual ao do fundo. Depois podemos bunscar na imagem o número de 
+    //regiões de tom de cinza 0, que equivale ao buraco.
     
-    floodFill(image,cvPoint(0,0), 50); // utilizando o floodFill(), mudaremos a cor de fundo
+    floodFill(image,cvPoint(0,0), 50);                  // utilizando o floodFill(), mudaremos a cor de fundo
     
     noburacos = 0;
     for (int i = 0; i < height; i++) {
@@ -66,7 +68,9 @@ int main(int argc, char **argv)
                 if(image.at<uchar>(i, j-1) == 200)
                 {
                     noburacos++;
-                    // preenche objeto com buraco com cor diferente, de forma que se acharmos um novo buraco e um pixel anterior for de cor diferente de 200, ele irá saber que o objeto possui outros buracos e não contabilizará novos buracos para aquele objeto.
+                    // preenche objeto com buraco com cor diferente, de forma que se acharmos um novo buraco e 
+                    //um pixel anterior for de cor diferente de 200, ele irá saber que a bolha possui outros 
+                    //buracos e não contabilizará novos buracos para aquela bolha.
                     floodFill(image,cvPoint(p.x-1,p.y), 150);
                 }
             }
@@ -83,9 +87,3 @@ int main(int argc, char **argv)
     waitKey();
     return 0;
 }
-
-
-
-
-//RESPOSTA
-// Como a imagem é composta por pixels de 8 bits, por ser tom de cinza a imagem poderá ter 256 diferentes tons. Retirando a cor de fundo (preta), temos 255 tons de cinza. Logo, se tivermos mais de 255 objetos não será possível rotulá-los na imagem. O interessante seria especificar um tom de cinza diferente de 0 e 255 e rotular todos os objetos. Com isso, não importa a quantidade de objetos.

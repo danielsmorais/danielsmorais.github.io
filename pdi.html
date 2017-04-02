@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">    
-    <link rel="shortcut icon" href="favicon.ico">  
+    <link rel="shortcut icon" href="assets/images/favicon.ico">  
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
     <!-- Global CSS -->
     <link rel="stylesheet" href="assets/plugins/bootstrap/css/bootstrap.min.css">   
@@ -95,10 +95,11 @@
                                     <h6>Código: <a href="PDI/3/regions.cpp">regions.cpp</a></h6>
                                     <pre><code class="language-c++">
 	
-#include <iostream>
-#include <cv.h>
-#include <highgui.h>
-#include <opencv2/opencv.hpp>
+#include &#60;iostream&#62;
+#include &#60;cv.h&#62;
+#include &#60;highgui.h&#62;
+#include &#60;opencv2/opencv.hpp&#62;
+
 
 using namespace cv;
 using namespace std;
@@ -106,19 +107,12 @@ using namespace std;
 
 int main(int, char**){
 
-    Mat image;    
+    Mat image, image2;    
     image = imread("../imagens/biel.png", CV_LOAD_IMAGE_GRAYSCALE);
+    image2 = image.clone();
 
     if(!image.data)
         cout << "Não foi possível abrir ou encontrar a imagem." << endl;
-    
-    //uint8_t altura = image.size().height;
-    //uint8_t largura = image.size().width;
-        
-    namedWindow("Imagem Original",WINDOW_AUTOSIZE);
-    imshow("Imagem Original", image);
-    //waitKey(0);    
-    
     
     Point p1, p2;
     
@@ -136,21 +130,23 @@ int main(int, char**){
            p2.x > 255 || p2.x < 0 || p2.y > 255 || p2.y < 0 || 
            p1.x > p2.x || p1.y > p2.y);
     
-    cout << "Pontos selecionados: "<< "P1("<<p1.x<<", "<<p1.y<<") e P2("<<p2.x<<", "<<p2.y<<")"<< endl;      
-   
-    
-    for(int i=p1.x;i<p2.x;i++){
-        for(int j=p1.y;j<p2.y;j++){
-            image.at<uchar>(i,j)= 255 - image.at<uchar>(i,j);
+    cout << "Pontos selecionados: "<< "P1("<< p1.x <<", "<< p1.y<<") e P2("<< p2.x<<", "<< p2.y<<")"<< endl;      
+       
+    for(int i=p1.x;i < p2.x;i++){
+        for(int j=p1.y;j < p2.y;j++){
+            image2.at< uchar >(i,j) = 255 - image2.at< uchar >(i,j);
         }
     }
     
+    namedWindow("Imagem Original",WINDOW_AUTOSIZE);
+    imshow("Imagem Original", image);
+    
     namedWindow("Imagem Negativo",WINDOW_AUTOSIZE);
-    imshow("Imagem Negativo", image);
+    imshow("Imagem Negativo", image2);
     waitKey(0);
     
     return 0;
-}                              
+}                             
                                 
                                 </code></pre>
                                 </div>                                 
@@ -189,10 +185,10 @@ int main(int, char**){
                                 <div clas="code-block">
                                 <h6>Código: <a href="PDI/3/regions.cpp">regions.cpp</a></h6>
                                 <pre><code class="language-c++">
-#include <iostream>
-#include <cv.h>
-#include <highgui.h>
-#include <opencv2/opencv.hpp>
+#include < iostream>
+#include < cv.h>
+#include < highgui.h>
+#include < opencv2/opencv.hpp>
 
 using namespace cv;
 using namespace std;
@@ -233,7 +229,7 @@ int main(int, char **)
                                 </code></pre>
                                 </div>
                                 </br>
-                                <p>Executando o código, obtemos o seguinte efeito:</p>    
+                                <p>Para facilitar na programação, foi utilizado o método <code>Rect()</code>, que permite fazer uma cópia dos pixels de uma determinada área da imagem que é especificada como parâmetro. Executando o código, obtemos o seguinte efeito:</p>    
                                 <div class="section-block">
 
                                         <h6>Figura 3 - Regiões trocadas</h6>
@@ -251,28 +247,339 @@ int main(int, char **)
                                     
 
                                 
-                                <div id="step2"  class="section-block">                               
-                                <h1 class="block-title">Exercício 4 - Preenchendo regiões</h1>
+                                 <div id="step2"  class="section-block">
                                 
+                                    <h1 class="block-title">Exercício 4 - Preenchendo regiões</h1>
+                                    <h3 class="block-title">4.1 - Questão </h3>
+                                    <p><i>
+                                    Observando-se o programa <a href="PDI/4/labeling.cpp">labeling.cpp</a> como exemplo, é possível verificar que caso existam mais de 255 objetos na cena, o processo de rotulação poderá ficar comprometido. Identifique a situação em que isso ocorre e proponha uma solução para este problema.
+                                    </i></p> 
+                                    <p>Como a imagem é composta por pixels de 8 bits, por ser tom de cinza a imagem poderá ter 256 diferentes tons. Retirando a cor de fundo (preta), temos 255 tons de cinza. Logo, se tivermos mais de 255 objetos não será possível rotulá-los na imagem. O interessante seria especificar um tom de cinza diferente de 0 e 255 e rotular todos os objetos com o mesmo tom. Com isso, não importa a quantidade de objetos.</p>
+                                    
+                                    <h3 class="block-title">4.2 - Contagem de objetos </h3>
+                                    <p><i>
+                                    Aprimore o algoritmo de contagem apresentado para identificar regiões com ou sem buracos internos que existam na cena. Assuma que objetos com mais de um buraco podem existir. Inclua suporte no seu algoritmo para não contar bolhas que tocam as bordas da imagem. Não se pode presumir, a priori, que elas tenham buracos ou não.
+                                    </i></p>
+                                    <p>
+                                    Uma forma de contar o número de buracos é através de rótulos, ou seja, como os buracos possuem o mesmo tom de cinza do fundo, podemos alterar a cor de fundo e buscar os buracos das bolhas, que terão seu tom de cinza igual ao do fundo original (0). Com o auxílio do método <code>floodFill()</code> podemos encontrar essas regiões e fazer sua contagem.
+                                    </p>
+                                    
+                                    <div clas="code-block">
+                                    <h6>Código: <a href="PDI/4/contaregiao.cpp">contaregiao.cpp</a></h6>
+                                    <pre><code class="language-c++">
+#include < iostream>
+#include < opencv2/opencv.hpp>
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char **argv)
+{
+    Mat image, mask;
+    int width, height;
+    int nobjects, noburacos;
+
+    CvPoint p;
+    image = imread("../imagens/bolhas.png", CV_LOAD_IMAGE_GRAYSCALE);
+
+    if (!image.data) {
+        cout << "imagem nao carregou corretamente\n";
+        return (-1);
+    }
+    width = image.size().width;         //colunas
+    height = image.size().height;       //linhas
+
+    p.x = 0;
+    p.y = 0;
+    
+    // Elimina os objetos que tocam as laterais da imagem, rotulando-os com a cor de fundo;
+    for (int k = 0; k < height; k++) {
+        floodFill(image, CvPoint(k,0), 0);
+        floodFill(image, CvPoint(k,255), 0);
+        floodFill(image, CvPoint(0,k), 0);
+        floodFill(image, CvPoint(255,k), 0);
+    }
+    
+
+    // Contagem de objetos
+    nobjects = 0;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (image.at < uchar > (i, j) == 255) {
+                // achou um objeto
+                nobjects++;
+                p.x = j;
+                p.y = i;
+
+                //Todos os objetos são rotulados no tom de cinza 200;
+                floodFill(image, p, 200);
+            }
+        }
+    }    
+    
+    // Contagem de objetos com buracos
+    //Uma forma de contar o número de buracos é através de rótulos, ou seja, como os buracos 
+    //possuem o mesmo tom de cinza do fundo, podemos alterar a cor de fundo e buscar os objetos, 
+    //que terão seu tom de cinza igual ao do fundo. Depois podemos bunscar na imagem o número de 
+    //regiões de tom de cinza 0, que equivale ao buraco.
+    
+    floodFill(image,cvPoint(0,0), 50);                  // utilizando o floodFill(), mudaremos a cor de fundo
+    
+    noburacos = 0;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (image.at < uchar > (i, j) == 0) {       //busca objetos da cor de fundo original
+                p.x = j;
+                p.y = i;
+                //Todos os buracos são rotulados no tom de cinza 50;
+                floodFill(image, p, 50);
+                
+                if(image.at< uchar>(i, j-1) == 200)
+                {
+                    noburacos++;
+                    // preenche objeto com buraco com cor diferente, de forma que se acharmos um novo buraco e 
+                    //um pixel anterior for de cor diferente de 200, ele irá saber que a bolha possui outros 
+                    //buracos e não contabilizará novos buracos para aquela bolha.
+                    floodFill(image,cvPoint(p.x-1,p.y), 150);
+                }
+            }
+        }
+    }  
+    
+    cout << "Número de objetos: " << nobjects << endl;
+    cout << "Número de buracos: " << noburacos << endl;
+    cout << "Número de objetos sem buracos: " << nobjects - noburacos << endl;   
+    
+
+    imshow("image", image);
+    imwrite("labeling.png", image);
+    waitKey();
+    return 0;
+}                       
+                                    
+                                    </code></pre>
+                                    </div>
+                                    </br>
+                                    <p>
+                                    Para testar o código, utilizaremos a Figura 4, que é formada por um fundo preto (0) e bolhas em tom branco (255).
+                                    </p>                                    
+                                    
+                                    <div class="section-block">
+                                        <h6>Figura 4 - Bolhas</h6>                                        
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/imagens/bolhas.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->
+                                    
+                                    <div class="section-block">
+                                        <h6>Figura 5 - Contagem de bolhas</h6> 
+                                        <p>Algoritmo modificado, logo um pouco diferente do labeling.cpp</p>
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/4/labeling1.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block--> 
+                                    
+                                    <div class="section-block">
+                                        <h6>Figura 6 - Contagem de bolhas e buracos</h6> 
+                                        <p>Resultado</p>
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/4/contaregiao.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->                                     
+                                 </div>
                                 
+
+                                 <div id="step3"  class="section-block">
                                 
-                                
-                                
-                                
+                                    <h1 class="block-title">Exercício 5 - Manipulação de histogramas</h1>
+                                    <h3 class="block-title">5.1 - Equalização de histograma </h3>
+                                    <p><i>                                    
+                                    Utilizando o programa <a href="PDI/5/histogram.cpp">histogram.cpp</a> como referência, implemente um programa <code>equalize.cpp</code>. Este deverá, para cada imagem capturada, realizar a equalização do histogram antes de exibir a imagem. Teste sua implementação apontando a câmera para ambientes com iluminações variadas e observando o efeito gerado. Assuma que as imagens processadas serão em tons de cinza.
+                                    </i></p> 
+                                    <p>
+                                    A equalização de histograma é um método que permite mudar a distribuição dos valores de ocorrência em um histograma permitindo uma redução das diferenças acentuadas de tons e assim, particularmente em imagens, acentuando detalhes não visíveis anteriormente.</p>
+                                    <p>Para a realização da aplicação, foi utilizado o exemplo de referência. Dessa forma, temos o seguinte código:</p>
+                                    
+                                    <div clas="code-block">
+                                    <h6>Código: <a href="PDI/5/equalize.cpp">equalize.cpp</a></h6>
+                                    <pre><code class="language-c++">
+#include < iostream>
+#include < cv.h>
+#include < highgui.h>
+#include < opencv2/opencv.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv){
+  Mat image;
+  int width, height;
+  VideoCapture cap;
+    
+  vector< Mat> planes;
+  Mat histR, histG, histB;
+  int nbins = 64;
+  float range[] = {0, 256};
+  const float *histrange = { range };
+  bool uniform = true;
+  bool acummulate = false;
+
+  cap.open(0);  //seleciona a camera
+  
+  
+  if(!cap.isOpened()){
+    cout << "cameras indisponiveis";
+    return -1;
+  }
+  
+  width  = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+  height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+  cout << "largura = " << width << endl;
+  cout << "altura  = " << height << endl;
+
+  int histw = nbins, histh = nbins/2;
+  Mat histImgR(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgG(histh, histw, CV_8UC3, Scalar(0,0,0));
+  Mat histImgB(histh, histw, CV_8UC3, Scalar(0,0,0));
+  
+  while(1){   
+    
+    cap >> image;
+    //Redimensionar a captura
+    resize(image, image, Size(640, 360));
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // EQUALIZAÇÃO
+    /////////////////////////////////////////////////////////////////////////////////////////////////// 
+    
+    //Separa a imagem capturada em três canais que são armazenados em "planes" 
+    split (image, planes);  
+    
+    //Equalização das capturas
+    equalizeHist(planes[0], planes[0]);
+    equalizeHist(planes[1], planes[1]);
+    equalizeHist(planes[2], planes[2]);    
+        
+    //Utilizamos  a função merge() para unir os planos ou canais equalizados em image.
+    merge(planes, image);   
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////// 
+    
+    
+    calcHist(&planes[0], 1, 0, Mat(), histR, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&planes[1], 1, 0, Mat(), histG, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&planes[2], 1, 0, Mat(), histB, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+
+    normalize(histR, histR, 0, histImgR.rows, NORM_MINMAX, -1, Mat());
+    normalize(histG, histG, 0, histImgG.rows, NORM_MINMAX, -1, Mat());
+    normalize(histB, histB, 0, histImgB.rows, NORM_MINMAX, -1, Mat());
+
+    histImgR.setTo(Scalar(0));
+    histImgG.setTo(Scalar(0));
+    histImgB.setTo(Scalar(0));
+    
+    for(int i=0; i < nbins; i++){
+      line(histImgR,
+           Point(i, histh),
+           Point(i, histh-cvRound(histR.at< float>(i))),
+           Scalar(0, 0, 255), 1, 8, 0);
+      line(histImgG,
+           Point(i, histh),
+           Point(i, histh-cvRound(histG.at< float>(i))),
+           Scalar(0, 255, 0), 1, 8, 0);
+      line(histImgB,
+           Point(i, histh),
+           Point(i, histh-cvRound(histB.at< float>(i))),
+           Scalar(255, 0, 0), 1, 8, 0);
+    }
+    histImgR.copyTo(image(Rect(0, 0       ,nbins, histh)));
+    histImgG.copyTo(image(Rect(0, histh   ,nbins, histh)));
+    histImgB.copyTo(image(Rect(0, 2*histh ,nbins, histh)));
+    imshow("image", image);
+    if(waitKey(30) >= 0) break;
+  }
+  return 0;
+}                       
+ 
+                                    </code></pre>
+                                    </div>
+                                    
+                                    </br>
+                                    <p>
+                                    O cálculo do histograma será realizado para cada uma das componentes de cor de forma independente. Logo, a separação das componentes em matrizes independentes será feita no vetor de matrizes <code>planes</code>. Assim, <code>planes[0]</code>, <code>planes[1]</code> e <code>planes[2]</code> armazenarão as componentes de cor Vermelho, Verde e Azul, respectivamente. É utilizado o método <code>split()</code> para a separação dos componentes de cor. Para fazer a equalização, é utilizado o método <code>equalizeHist()</code>, que é do OpenCV, ele é utilizado para todas as componentes da imagem em captura. Para finalizar, é utilizado o método <code>merge()</code> para unir os planos e formar a nova imagem equalizada.                                   
+                                    </p>
+                                    <p>
+                                    A seguir, a Figura 7 mostra a captura sem equalização e a Figura 8 mostra o resultado da equalização.
+                                    </p>
+
+                                    <div class="section-block">
+                                        <h6>Figura 7 - Captura sem equalização</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/5/histogram.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block--> 
+                                    
+                                    <div class="section-block">
+                                        <h6>Figura 8 - Captura com equalização de histograma</h6> 
+                                        <p>Resultado</p>
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/5/equalize.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                    </div><!--//section-block-->                                      
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    <h3 class="block-title">5.2 - Motion Detection </h3>
+                                    <p><i>
+                                    Utilizando o programa <a href="PDI/5/histogram.cpp">histogram.cpp</a> como referência, implemente um programa <code>motiondetector.cpp</code>. Este deverá continuamente calcular o histograma da imagem (apenas uma componente de cor é suficiente) e compará-lo com o último histograma calculado. Quando a diferença entre estes ultrapassar um limiar pré-estabelecido, ative um alarme. Utilize uma função de comparação que julgar conveniente.
+                                    </i></p>
+                                    <p>
+
+                                    </p>
                                 </div>
                                 
-                                
-                                
      
-                            </section><!--//doc-section-->
-
+                            </section><!--//doc-section-->  
                             
                             
                             
-                            
-                            
-                            
-                            
+                                                
                             <section id="2unidade-section" class="doc-section">
                                 <h2 class="section-title">2ª Unidade</h2>
                                 <div class="section-block">
@@ -281,19 +588,14 @@ int main(int, char **)
                                     </p>
                                     
                                 </div><!--//section-block-->
-                                <div id="html" class="section-block">                             
+                                <div id="html" class="section-block">                          
 
-
-                                    
-                                    
-                                    
-                                    
+     
                                     
                                 </div><!--//section-block-->
                                 
                                 
-                                
-                            
+
                             
                             </section><!--//doc-section-->
                             

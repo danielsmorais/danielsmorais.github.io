@@ -38,6 +38,9 @@ int main(int argc, char** argv){
 
   while(1){
     cap >> image;
+    //Redimensionar a captura
+    resize(image, image, Size(640, 360));
+    
     split (image, planes);
     calcHist(&planes[0], 1, 0, Mat(), histR, 1,
              &nbins, &histrange,

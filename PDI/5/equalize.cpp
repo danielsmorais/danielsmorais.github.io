@@ -43,11 +43,12 @@ int main(int argc, char** argv){
     
     cap >> image;
     //Redimensionar a captura
-    //resize(image, image, Size(640,480));
-    //resize(image, image, Size(640, 360), 0, 0, INTER_CUBIC)
-    
+    resize(image, image, Size(640, 360));
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // EQUALIZAÇÃO
     /////////////////////////////////////////////////////////////////////////////////////////////////// 
     
+    //Separa a imagem capturada em três canais que são armazenados em "planes" 
     split (image, planes);  
     
     //Equalização das capturas
@@ -55,7 +56,7 @@ int main(int argc, char** argv){
     equalizeHist(planes[1], planes[1]);
     equalizeHist(planes[2], planes[2]);    
         
-    //Utilizamos  a função merge() para unir os planos ou  canais equlizados em image.
+    //Utilizamos  a função merge() para unir os planos ou canais equalizados em image.
     merge(planes, image);   
     
     /////////////////////////////////////////////////////////////////////////////////////////////////// 
