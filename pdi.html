@@ -21,6 +21,24 @@
     
     <!-- Theme CSS -->
     <link id="theme-style" rel="stylesheet" href="assets/css/styles.css">
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: {
+        autoNumber: "AMS"
+      }
+    },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ['\(', '\)'] ],
+      displayMath: [ ['$$','$$'] ],
+      processEscapes: true,
+    }
+  });
+</script>
+
+    <script type="text/javascript" charset="utf-8" src="
+https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML,
+https://vincenttam.github.io/javascripts/MathJaxLocal.js"></script>
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -1087,16 +1105,24 @@ int main(int argvc, char** argv){
                                 <h2 class="section-title">2ª Unidade</h2>
                                 <div id="step6" class="section-block">
 
-                                    <h1 class="block-title">Exercício 8 - Filtragem no domínio da Frquência</h1>
+                                    <h1 class="block-title">Exercício 8 - Filtragem no domínio da Frequência</h1>
 
                                     <p><i>
 				    Utilizando o programa <a href="PDI/8/dft.cpp">dft.cpp</a> como referência, implemente o filtro homomórfico para melhorar imagens com iluminação irregular. Crie uma cena mal iluminada e ajuste os parâmetros do filtro homomórfico para corrigir a iluminação da melhor forma possível. Assuma que a imagem fornecida é em tons de cinza.
 				    </i></p>
                                     
                                     <p>
-				    Através do modelo de iluminação-reflectância, é possível desenvolver um procedimento no domínio da frequência para melhorar a aparência de uma imagem efetuando simultaneamente a compressão da faixa de intensidade e o realce de contraste. Uma imagem pode ser expressa por <i>f(x,y) = i(x,y)r(x,y)</i> , mas ela não pode ser utilizada diretamente para atuar sobre os componentes de frequência de iluminação e reflectância, pois a Transformada de Fourier de um produto não é o produto das transformadas. Para que isso seja possível, aplicaremos o logaritmo na expressão, pois o logaritmo de um produto é a soma dos logaritmos.
+				    Através do modelo de iluminação-reflectância, é possível desenvolver um procedimento no domínio da frequência para melhorar a aparência de uma imagem efetuando simultaneamente a compressão da faixa de intensidade e o realce de contraste. Uma imagem pode ser expressa por $f(x,y) = i(x,y)r(x,y)$ , mas ela não pode ser utilizada diretamente para atuar sobre os componentes de frequência de iluminação e reflectância, pois a Transformada de Fourier de um produto não é o produto das transformadas. Para que isso seja possível, aplicaremos o logaritmo na expressão, pois o logaritmo de um produto é a soma dos logaritmos.
                                     </p>
-<p><a href="https://www.codecogs.com/eqnedit.php?latex=z(x,y)&space;=&space;ln(f(x,y))&space;=&space;ln(i(x,y))&space;&plus;&space;ln(r(x,y))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?z(x,y)&space;=&space;ln(f(x,y))&space;=&space;ln(i(x,y))&space;&plus;&space;ln(r(x,y))" title="z(x,y) = ln(f(x,y)) = ln(i(x,y)) + ln(r(x,y))" /></a></p>
+<p>$$z(x,y) = ln(f(x,y)) = ln(i(x,y)) + ln(r(x,y))$$</p>
+
+<p>Podemos seguir os passos abaixo para obtenção da imagem filtrada:</p>
+<p>$$f(x,y) \longrightarrow ln \longrightarrow DFT \longrightarrow H(u,v) \longrightarrow (DFT)^{-1} \longrightarrow exp  \longrightarrow g(x,y)$$</p>
+
+<p>O cálculo do filtro é dado por:  $$H(u,v) = (\gamma_{H} - \gamma_{L})[1-e^{-c[D^2(u,v)/D_0^2]}] + \gamma_{L} $$ onde $c$ é a constante que controla a inclinação da função à medida que ela realiza a transição entre $\gamma_{L}$ e $\gamma_{H}$.</p>
+
+<p>A seguir, código desenvolvido a partir desses conceitos:</p>
+
                                     
                                     <div clas="code-block">
                                     <h6>Código: <a href="PDI/8/homomorfico.cpp">homomorfico.cpp</a></h6>
@@ -1111,8 +1137,8 @@ using namespace std;
 
 Mat complexImage, padded, filter;
 Mat image, imagegray, tmp;
-Mat_<float> realInput, zeros;
-vector<Mat> planos;
+Mat_< float > realInput, zeros;
+vector < Mat > planos;
 
 
 int dft_M, dft_N;
@@ -1134,12 +1160,12 @@ void callFilter(int, void*)
     double c0 = C0/100.0;
 
     // Calcula o filtro pixel a pixel
-    for(int i=0; i<dft_M; i++)
+    for(int i=0; i < dft_M; i++)
     {
-        for(int j=0; j<dft_N; j++)
+        for(int j=0; j < dft_N; j++)
         {
             double D = pow(i-dft_M/2,2)+pow(j-dft_N/2, 2);
-            tmp.at<float> (i,j) = (gH-gL)*(1-exp(-c0*D/pow(d0,2)))+gL;
+            tmp.at< float > (i,j) = (gH-gL)*(1-exp(-c0*D/pow(d0,2)))+gL;
         }
     }
 
@@ -1208,7 +1234,7 @@ int main(int, char**)
     copyMakeBorder(image, padded, 0, dft_M - image.rows, 0, dft_N - image.cols, BORDER_CONSTANT, Scalar::all(0));
 
     // parte imaginaria da matriz complexa (preenchida com zeros)
-    zeros = Mat_<float>::zeros(padded.size());
+    zeros = Mat_ < float > ::zeros(padded.size());
 
     // prepara a matriz complexa para ser preenchida
     complexImage = Mat(padded.size(), CV_32FC2, Scalar(0));
@@ -1235,7 +1261,7 @@ int main(int, char**)
         // imagem complexa
         planos.clear();
         // cria a compoente real
-        realInput = Mat_<float>(padded);
+        realInput = Mat_ < float > (padded);
 
         // soma com 1 para evitar problemas de log(0) o erro e minimo
         realInput += Scalar::all(1);
@@ -1288,7 +1314,7 @@ int main(int, char**)
     planos[0].convertTo(res, CV_8UC1, 255.0);
     // salva a imagem resultante
     imwrite("filtrada.png", res);
-    vector<Mat> pFiltro;
+    vector < Mat > pFiltro;
     split(filter,pFiltro);
     normalize(pFiltro[0], pFiltro[0], 0, 1, CV_MINMAX);
     pFiltro[0].convertTo(res, CV_8UC1, 255.0);
@@ -1300,18 +1326,90 @@ int main(int, char**)
 }
 
                                 </code></pre>
-                                </div>  
-                                    
-                                </div><!--//section-block-->
-                                <div id="html" class="section-block">                          
+                                </div>
 
-     
-                                    
-                                </div><!--//section-block-->
-                                
-                                
 
-                            
+                                <div class="section-block">
+                                	<h6>Figura 16 - Imagem original colorida</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/8/noite.jpg" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->
+
+                                <div class="section-block">
+                                	<h6>Figura 17 - Imagem original em escala de cinza</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/8/original.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->
+
+                                <div class="section-block">
+                                	<h6>Figura 18 - Programa em execução</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/8/tela.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->
+
+                                <div class="section-block">
+                                	<h6>Figura 19 - Imagem filtrada</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/8/filtrada_.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->
+
+                                <div class="section-block">
+                                	<h6>Figura 20 - Filtro</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/8/filtro_.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->
+                                     
+                                </div><!--//section-block-->
+<!-- EXERCÍCIO 9 -->
+<div id="step7" class="section-block">
+
+                                    <h1 class="block-title">Exercício 11 - Pontilhismo</h1>
+
+                                    <p><i>
+				                    Utilizando o programa <a href="PDI/8/dft.cpp">dft.cpp</a> como referência, implemente o filtro homomórfico para melhorar imagens com iluminação irregular. Crie uma cena mal iluminada e ajuste os parâmetros do filtro homomórfico para corrigir a iluminação da melhor forma possível. Assuma que a imagem fornecida é em tons de cinza.
+				                    </i></p>
+                                    
+                                    <p>
+				                    Através do modelo de iluminação-reflectância, é possível desenvolver um procedimento no domínio da frequência para melhorar a aparência de uma imagem efetuando simultaneamente a compressão da faixa de intensidade e o realce de contraste. Uma imagem pode ser expressa por $f(x,y) = i(x,y)r(x,y)$ , mas ela não pode ser utilizada diretamente para atuar sobre os componentes de frequência de iluminação e reflectância, pois a Transformada de Fourier de um produto não é o produto das transformadas. Para que isso seja possível, aplicaremos o logaritmo na expressão, pois o logaritmo de um produto é a soma dos logaritmos.
+                                    </p>
+
+
+                                    
+                                    <div clas="code-block">
+                                    <h6>Código: <a href="PDI/8/homomorfico.cpp">homomorfico.cpp</a></h6>
+                                    <pre><code class="language-c++">
+#include &#60;iostream&#62;
+#include &#60;highgui.h&#62;
+#include &#60;opencv2/opencv.hpp&#62;
+#include &#60;opencv2/imgproc/imgproc.hpp&#62;
+
+
+                                </code></pre>
+                                </div>
+
+
+                                <div class="section-block">
+                                	<h6>Figura 16 - Imagem original colorida</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/8/noite.jpg" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->
+
+
+                                     
+                                </div><!--//section-block-->                                
+                              
                             </section><!--//doc-section-->
                             
                             
@@ -1394,7 +1492,7 @@ int main(int, char**)
                                     <a class="scrollto" href="#2unidade-section">2ª UNIDADE</a>
                                     <ul class="nav doc-sub-menu">
                                         <li><a class="scrollto" href="#step6">Exercício 8</a></li>
-					<li><a class="scrollto" href="#step7">Exercício 9</a></li>
+					                    <li><a class="scrollto" href="#step7">Exercício 11</a></li>
 
                                     </ul><!--//nav-->
                                 </li>
