@@ -1376,35 +1376,164 @@ int main(int, char**)
                                     <h1 class="block-title">Exercício 11 - Pontilhismo</h1>
 
                                     <p><i>
-				                    Utilizando o programa <a href="PDI/8/dft.cpp">dft.cpp</a> como referência, implemente o filtro homomórfico para melhorar imagens com iluminação irregular. Crie uma cena mal iluminada e ajuste os parâmetros do filtro homomórfico para corrigir a iluminação da melhor forma possível. Assuma que a imagem fornecida é em tons de cinza.
+				                    Utilizando os programas exemplos/canny.cpp e exemplos/pontilhismo.cpp como referência, implemente um 
+                                    programa cannypoints.cpp. A idéia é usar as bordas produzidas pelo algoritmo de Canny para melhorar a 
+                                    qualidade da imagem pontilhista gerada. A forma como a informação de borda será usada é livre. Entretanto, 
+                                    são apresentadas algumas sugestões de técnicas que poderiam ser utilizadas:
 				                    </i></p>
                                     
                                     <p>
-				                    Através do modelo de iluminação-reflectância, é possível desenvolver um procedimento no domínio da frequência para melhorar a aparência de uma imagem efetuando simultaneamente a compressão da faixa de intensidade e o realce de contraste. Uma imagem pode ser expressa por $f(x,y) = i(x,y)r(x,y)$ , mas ela não pode ser utilizada diretamente para atuar sobre os componentes de frequência de iluminação e reflectância, pois a Transformada de Fourier de um produto não é o produto das transformadas. Para que isso seja possível, aplicaremos o logaritmo na expressão, pois o logaritmo de um produto é a soma dos logaritmos.
+				                    Esta atividade teve como intuito o desenvolvimento do filtro de Canny e gerar uma imagem com pontilhismo. 
+                                    Primeiramente foi aplicado na imagem o processo do pontilhismo, em seguida, a imagem bruta passou por algumas 
+                                    iterações do filtro de Canny, sendo possível delimitar suas bordas. Em cada uma das iterações o limiar do filtro 
+                                    é alterado com a intenção de obter uma imagem com menos bordas. Para as bordas ficarem mais destacadas foi necessário 
+                                    percorrer a imagem filtrada e desenhar um círculo em cada pixel que possuísse um tom de cinza maior que zero.
                                     </p>
 
 
                                     
                                     <div clas="code-block">
-                                    <h6>Código: <a href="PDI/8/homomorfico.cpp">homomorfico.cpp</a></h6>
+                                    <h6>Código: <a href="PDI/11/cannypoints.cpp">cannypoints.cpp</a></h6>
                                     <pre><code class="language-c++">
 #include &#60;iostream&#62;
 #include &#60;highgui.h&#62;
 #include &#60;opencv2/opencv.hpp&#62;
 #include &#60;opencv2/imgproc/imgproc.hpp&#62;
+#include &#60;fstream&#62;
+#include &#60;iomanip&#62;
+#include &#60;vector&#62;
+#include &#60;algorithm&#62;
+#include &#60;numeric&#62;
+#include &#60;ctime&#62;
+#include &#60;cstdlib&#62;
 
+using namespace std;
+using namespace cv;
 
+//Definição de constantes
+
+#define STEP 5
+#define RAIO 3
+#define JITTER 3
+
+int main(int argc, char** argv){
+  vector< int> yrange;
+  vector< int> xrange;
+
+  Mat image, borderImage;
+  Mat pontilhismo;
+  int width, height, gray, x, y;
+
+  image= imread("ponte.jpg",CV_LOAD_IMAGE_GRAYSCALE);
+
+  srand(time(0));
+
+  if(!image.data){
+    cout << "Impossível ler a imagem."<< endl;
+    exit(0);
+  }
+
+  width = image.size().width;
+  height = image.size().height;
+
+  xrange.resize(height/STEP);
+  yrange.resize(width/STEP);
+
+  iota(xrange.begin(), xrange.end(), 0);
+  iota(yrange.begin(), yrange.end(), 0);
+
+  for(int i=0; i < xrange.size(); i++){
+    xrange[i] = xrange[i]*STEP+STEP/2;
+  }
+  
+  for(int j=0; j < yrange.size(); j++){
+    yrange[j] = yrange[j]*STEP+STEP/2;
+  }
+
+  image.copyTo(pontilhismo);
+  random_shuffle(xrange.begin(), xrange.end());
+
+  for(auto i : xrange){
+    random_shuffle(yrange.begin(), yrange.end());
+    for(auto j : yrange){
+      x = i+rand()%(2*JITTER)-JITTER+1;
+      y = j+rand()%(2*JITTER)-JITTER+1;
+      gray = image.at< uchar>(x,y);
+      circle(pontilhismo,
+             cv::Point(y,x),
+             RAIO,
+             CV_RGB(gray,gray,gray),
+             -1,
+             CV_AA);
+    }
+  }
+
+  imshow("pontilhismo", pontilhismo);
+  imwrite("pontilhismo.png", pontilhismo);
+
+  for(int n = 0; n < 5; n++){
+     Canny(image, borderImage, 10 * n, 50 * n);
+     imshow("cannyborderImage", borderImage);
+     imwrite("cannyborderImage.png", borderImage);     
+     
+     int raio = 5 - n;
+
+     for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+           if(borderImage.at< uchar>(i,j)>0){
+              gray = image.at< uchar>(i,j);
+              circle(pontilhismo,
+                     cv::Point(j,i),
+                     raio,
+                     CV_RGB(gray,gray,gray),
+                     -1,
+                     CV_AA);
+           }
+        }
+     }
+  }
+
+  imshow("cannyPoints", pontilhismo);
+  imwrite("cannyPoints.png", pontilhismo);
+
+  waitKey();
+  return 0;
+}
                                 </code></pre>
                                 </div>
 
 
                                 <div class="section-block">
-                                	<h6>Figura 16 - Imagem original colorida</h6> 
+                                	<h6>Figura 21 - Imagem original</h6> 
                                         <div class="screenshot-holder">
                                             <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
-                                            src="PDI/8/noite.jpg" alt="screenshot"></a>                                                
+                                            src="PDI/11/ponte.jpg" alt="screenshot"></a>                                                
                                         </div>                   
                                 </div><!--//section-block-->
+
+                                <div class="section-block">
+                                	<h6>Figura 22 - Imagem com o processo do pontilhismo</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/11/pontilhismo.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->
+
+                                <div class="section-block">
+                                	<h6>Figura 23 - Imagem com Filtro de Canny</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/11/cannyborderImage.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->
+
+                                <div class="section-block">
+                                	<h6>Figura 24 - Imagem pontilhista após a utilização do filtro de Canny</h6> 
+                                        <div class="screenshot-holder">
+                                            <a data-title="terminal" data-toggle="lightbox"><img class="img-responsive" 
+                                            src="PDI/11/cannyPoints.png" alt="screenshot"></a>                                                
+                                        </div>                   
+                                </div><!--//section-block-->                                                                                                
 
 
                                      
@@ -1418,7 +1547,8 @@ int main(int, char**)
                             <section id="3unidade-section" class="doc-section">
                                 <h2 class="section-title">3ª Unidade</h2>
                                 <div class="section-block">
-                                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi nec imperdiet turpis. Curabitur aliquet pulvinar ultrices. Etiam at posuere leo. Proin ultrices ex et dapibus feugiat <a href="#">link example</a> aenean purus leo, faucibus at elit vel, aliquet scelerisque dui. Etiam quis elit euismod, imperdiet augue sit amet, imperdiet odio. Aenean sem erat, hendrerit  eu gravida id, dignissim ut ante. Nam consequat porttitor libero euismod congue. 
+                                    <p>
+                                        Projeto Final
                                     </p>
                                     
 
@@ -1428,14 +1558,12 @@ int main(int, char**)
                             
 
                             <section id="icons-section" class="doc-section">
-                                <h2 class="section-title">Plus</h2>
+                                <h2 class="section-title">Referências</h2>
                                 <div class="section-block">
-                                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi nec imperdiet turpis. Curabitur aliquet pulvinar ultrices. Etiam at posuere leo. Proin ultrices ex et dapibus feugiat <a href="#">link example</a> aenean purus leo, faucibus at elit vel, aliquet scelerisque dui. Etiam quis elit euismod, imperdiet augue sit amet, imperdiet odio. Aenean sem erat, hendrerit  eu gravida id, dignissim ut ante. Nam consequat porttitor libero euismod congue. 
-                                    </p>
-                                </div><!--//section-block-->
-                                
-
-                                
+                                    <p><a  href="http://agostinhobritojr.github.io/tutoriais/pdi" target="_blank">Professor Agostinho Brito</a> </p>
+                                    <p><a  href="http://docs.opencv.org/" target="_blank">OpenCV</a> </p>
+                                    <p><a  >Rafael C. Gonzalez. Processamento Digital de Imagens. 3ª Edição.</a> </p>
+                                </div><!--//section-block-->                                                              
                             </section><!--//doc-section-->
                             
                             <section class="doc-section">
